@@ -1,0 +1,114 @@
+{
+  "name": "openclaw_credit_risk_agent",
+  "version": "1.0.0",
+  "description": "OpenClaw multi-agent layer for Basel III/IFRS 9 Credit Risk & Expected Loss Assessment",
+  "framework": "openclaw",
+  "llm_provider": "groq",
+  "default_model": "deepseek-r1-distill-llama-70b",
+  "tools": [
+    {
+      "name": "predict_pd",
+      "description": "Calculate Probability of Default using the regulatory WoE Logistic Scorecard or Challenger models.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"},
+          "model_type": {"type": "string", "enum": ["scorecard", "xgboost", "random_forest", "logistic_regression"], "default": "scorecard"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "predict_lgd",
+      "description": "Calculate Loss Given Default using the two-stage hurdle recovery rate model.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "predict_ead",
+      "description": "Calculate Exposure at Default based on Credit Conversion Factor (CCF) and funded amount.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "calculate_expected_loss",
+      "description": "Calculate Expected Loss (EL = PD * LGD * EAD).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pd": {"type": "number", "description": "Probability of default [0, 1]"},
+          "lgd": {"type": "number", "description": "Loss given default [0, 1]"},
+          "ead": {"type": "number", "description": "Exposure at default ($)"}
+        },
+        "required": ["pd", "lgd", "ead"]
+      }
+    },
+    {
+      "name": "run_full_credit_assessment",
+      "description": "Run end-to-end credit assessment returning PD, LGD, EAD, EL, score, risk grade, challenger comparison, SHAP drivers, and policy decision.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Applicant attributes"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "explain_prediction",
+      "description": "Extract SHAP risk drivers and feature contributions for the applicant.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"},
+          "top_n": {"type": "integer", "default": 5}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "compare_models",
+      "description": "Compare predictions across Scorecard, XGBoost, Random Forest, and Challenger Logistic Regression.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "run_stress_test",
+      "description": "Apply macroeconomic shocks (-2% GDP, +5% unemployment) to quantify stressed PD and capital shortfall.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "application": {"type": "object", "description": "Loan application payload"},
+          "scenario": {"type": "string", "enum": ["baseline", "mild_downturn", "severe_recession", "all"], "default": "all"}
+        },
+        "required": ["application"]
+      }
+    },
+    {
+      "name": "calculate_psi",
+      "description": "Calculate Population Stability Index (PSI) to detect distribution drift.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "feature_name": {"type": "string", "description": "Feature to check or 'all'"},
+          "actual_values": {"type": "array", "items": {"type": "number"}}
+        }
+      }
+    }
+  ]
+}
