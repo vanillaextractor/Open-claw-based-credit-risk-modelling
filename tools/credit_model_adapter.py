@@ -46,10 +46,23 @@ class CreditModelAdapter:
 
     _instance = None
 
+    @classmethod
+    def reset_instance(cls):
+        """Reset the singleton instance (useful for testing or recovering from failure)."""
+        cls._instance = None
+        global _adapter_instance
+        _adapter_instance = None
+
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(CreditModelAdapter, cls).__new__(cls)
-            cls._instance._initialize()
+            instance = super(CreditModelAdapter, cls).__new__(cls)
+            try:
+                instance._initialize()
+                cls._instance = instance
+            except Exception:
+                # Critical: do not leave a half-initialized instance in _instance on error
+                cls._instance = None
+                raise
         return cls._instance
 
     def _initialize(self):
@@ -968,9 +981,20 @@ class CreditModelAdapter:
 # Global helper singleton instance
 _adapter_instance = None
 
-def get_credit_adapter() -> CreditModelAdapter:
-    """Get or create singleton credit model adapter."""
+
+def get_credit_adapter(reload: bool = False) -> CreditModelAdapter:
+    """Get or create singleton credit model adapter.
+
+    Args:
+        reload: If True, forces re-initialization of the singleton.
+    """
     global _adapter_instance
+    if reload:
+        CreditModelAdapter.reset_instance()
     if _adapter_instance is None:
-        _adapter_instance = CreditModelAdapter()
+        try:
+            _adapter_instance = CreditModelAdapter()
+        except Exception:
+            _adapter_instance = None
+            raise
     return _adapter_instance

@@ -73,19 +73,25 @@ The **OpenClaw Credit Risk Agent** wraps a multi-agent orchestration layer aroun
 
 ---
 
-## 🛠️ Installation & Setup
+## 🛠️ Installation & Quickstart
 
-### 1. Prerequisites
-- Python 3.10+
-- Installed packages: `fastapi`, `uvicorn`, `groq`, `pydantic`, `scikit-learn`, `xgboost`, `shap`, `joblib`, `pytest`
-
-### 2. Environment Configuration
-Copy the sample environment file:
+### 1. Clone & Install Dependencies
+Clone the standalone repository and install dependencies:
 ```bash
-cp openclaw_credit_risk_agent/.env.example openclaw_credit_risk_agent/.env
+git clone https://github.com/vanillaextractor/Open-claw-based-credit-risk-modelling.git
+cd Open-claw-based-credit-risk-modelling
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-Edit `openclaw_credit_risk_agent/.env`:
+### 2. Environment Configuration (Optional)
+Copy the sample environment file:
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
 ```ini
 GROQ_API_KEY=your_actual_groq_api_key_here
 GROQ_MODEL=deepseek-r1-distill-llama-70b
@@ -93,42 +99,42 @@ GROQ_TEMPERATURE=0.1
 PORT=8000
 ```
 
-> **Note**: The system functions completely in deterministic mode even if `GROQ_API_KEY` is not provided.
+> **Note**: The system works 100% deterministically out of the box even if `GROQ_API_KEY` is not provided!
 
-### 3. OpenClaw Runtime Setup (Optional)
-If running OpenClaw gateway / CLI:
+### 3. OpenClaw Tool Configuration (Optional)
+If running with OpenClaw gateway / CLI:
 ```bash
 npm install -g openclaw
 ```
-The tool definitions are pre-configured in [`openclaw_credit_risk_agent/config/openclaw_config.json`](file:///Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/openclaw_credit_risk_agent/config/openclaw_config.json).
+The tool definitions are pre-configured in [`config/openclaw_config.json`](config/openclaw_config.json).
 
 ---
 
 ## 💻 Running the Application
 
 ### 1. Interactive CLI Demo
-Run the CLI demo from the parent directory:
+Run the CLI demo directly:
 ```bash
 # Evaluate a prime low-risk borrower profile
-python3 openclaw_credit_risk_agent/app.py --sample low_risk
+python3 app.py --sample low_risk
 
 # Evaluate a borderline borrower profile
-python3 openclaw_credit_risk_agent/app.py --sample borderline
+python3 app.py --sample borderline
 
 # Evaluate a high-risk subprime borrower profile
-python3 openclaw_credit_risk_agent/app.py --sample high_risk
+python3 app.py --sample high_risk
 
-# Interactive mode
-python3 openclaw_credit_risk_agent/app.py --interactive
+# Interactive mode (prompts for loan fields)
+python3 app.py --interactive
 
-# From JSON input
-python3 openclaw_credit_risk_agent/app.py --json-input path/to/applicant.json
+# From custom JSON file
+python3 app.py --json-input path/to/applicant.json
 ```
 
 ### 2. FastAPI Microservice
 Start the REST API server:
 ```bash
-python3 -m uvicorn openclaw_credit_risk_agent.api:app --host 0.0.0.0 --port 8000 --reload
+python3 -m uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Interactive OpenAPI documentation available at:
@@ -212,9 +218,9 @@ curl -X POST "http://localhost:8000/credit-risk/assess" \
 
 ## 🧪 Running Tests
 
-Execute the comprehensive automated test suite:
+Execute the comprehensive automated test suite (all 39 tests):
 ```bash
-python3 -m pytest openclaw_credit_risk_agent/tests/ -v
+pytest -v
 ```
 
 Test coverage includes:
@@ -224,6 +230,7 @@ Test coverage includes:
 - **`test_shap_explainability.py`**: SHAP feature attributions and adverse action notice generation.
 - **`test_stress_testing.py`**: Macroeconomic stress simulations (GDP $-2\%$, Unemployment $+5\%$).
 - **`test_psi_monitoring.py`**: Population Stability Index equation and distribution drift detection.
+- **`test_singleton_adapter.py`**: Singleton pattern lifecycle, failure recovery, and cache poisoning protection.
 - **`test_agents_tools.py`**: Agent isolation, schema sanitization, and tool adapter wrappers.
 - **`test_e2e_assessment.py`**: End-to-end multi-agent orchestration and FastAPI HTTP endpoints.
 
@@ -232,7 +239,7 @@ Test coverage includes:
 ## 🛡️ Guardrails & Governance
 
 1. **Zero Math in LLM**: Statistical risk calculation logic is executed strictly in Python.
-2. **Immutable Read-Only Parent**: The existing project files (`df_scorecard.csv`, `ml_challenger_output/*`, `*.ipynb`) are read-only and never modified.
+2. **Self-Contained & Deterministic**: Bundled scorecard and ML models enable zero-config instant deployment.
 3. **Secret Isolation**: `GROQ_API_KEY` is never logged or exposed in audit trails.
 4. **Audit Logging**: Every credit assessment is logged as an immutable JSON file in `audit_logs/` recording timestamps, input snapshots, model versions, decisions, and tool executions.
 
@@ -244,11 +251,17 @@ Test coverage includes:
 openclaw_credit_risk_agent/
 ├── ARCHITECTURE.md                 # System architecture specification
 ├── README.md                       # Main documentation & user guide
+├── requirements.txt                # Curated Python dependencies
+├── pyproject.toml / setup.py       # Standard package installation configs
+├── conftest.py                     # Pytest environment & path discovery
 ├── .env.example                    # Environment configuration template
 ├── app.py                          # Interactive CLI demo application
 ├── api.py                          # FastAPI REST microservice
+├── data/                           # Bundled standalone model artifacts
+│   ├── df_scorecard.csv            # WoE Scorecard (103 bins & coefficients)
+│   └── ml_output/                  # Serialized ML challengers (XGB, RF, LR, Scaler, PSI)
 ├── config/
-│   ├── settings.py                 # Pydantic configuration loader
+│   ├── settings.py                 # Hierarchical configuration loader
 │   └── openclaw_config.json        # OpenClaw tool registry schema
 ├── agents/
 │   ├── base_agent.py               # Groq LLM integration base class
@@ -268,5 +281,5 @@ openclaw_credit_risk_agent/
 ├── docs/
 │   └── agent-workflow.md           # Multi-agent decision flow & governance
 ├── audit_logs/                     # Automated JSON audit trail records
-└── tests/                          # Automated Pytest suite (36 unit & e2e tests)
+└── tests/                          # Automated Pytest suite (39 unit & e2e tests)
 ```

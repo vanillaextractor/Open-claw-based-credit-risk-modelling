@@ -67,8 +67,8 @@ The framework follows a hierarchical orchestrator-worker agent pattern:
 - **Output**: Validated `ApplicantData` Pydantic model.
 
 ### Step 2: Quantitative Risk Engine Execution (`RiskModelAgent`)
-- **Action**: Calls deterministic Python models from parent repository:
-  1. **PD Scorecard**: Maps applicant into 103 WoE dummy categories against [`df_scorecard.csv`](file:///Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/df_scorecard.csv), computes log-odds $\sum \beta_i X_i$, Credit Score ($300-850$), and Probability of Default:
+- **Action**: Calls deterministic Python models from parent repository / bundled data:
+  1. **PD Scorecard**: Maps applicant into 103 WoE dummy categories against [`df_scorecard.csv`](../data/df_scorecard.csv), computes log-odds $\sum \beta_i X_i$, Credit Score ($300-850$), and Probability of Default:
      $$\text{PD} = 1 - \frac{\exp(\beta_0 + \sum \beta_i X_i)}{1 + \exp(\beta_0 + \sum \beta_i X_i)}$$
   2. **Two-Stage Hurdle LGD**: Estimates recovery probability $\times$ conditional recovery rate. $\text{LGD} = 1 - \text{Recovery Rate}$.
   3. **Credit Conversion Factor (CCF) EAD**: Estimates exposure at default. $\text{EAD} = \text{CCF} \times \text{Funded Amount}$.

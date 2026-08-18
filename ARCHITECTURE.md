@@ -6,7 +6,7 @@ This document describes the architectural design of the **OpenClaw-based Agentic
 
 The architecture strictly adheres to a **zero-modification policy** on the existing parent project:
 - All parent credit risk model files, trained model artifacts, CSV scorecards, notebooks, and reference guides remain **read-only source material**.
-- The new agentic layer resides entirely inside [`openclaw_credit_risk_agent/`](file:///Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/openclaw_credit_risk_agent/).
+- The new agentic layer resides entirely inside `openclaw_credit_risk_agent/` with bundled standalone model artifacts in `data/`.
 - All numerical and credit predictions (PD, LGD, EAD, EL, SHAP, PSI, Stress Testing) are executed by deterministic Python functions. **The LLM never calculates or overrides numerical model values.**
 
 ---
@@ -25,7 +25,7 @@ $$\text{Expected Loss (EL)} = \text{PD} \times \text{LGD} \times \text{EAD}$$
 | **EAD** (Exposure at Default) | Dollar exposure at the moment of default | Credit Conversion Factor (CCF) Linear Regression bounded in $[0, 1]$ | CCF ($0.0–1.0$), EAD = $\text{CCF} \times \text{Funded Amount}$ |
 
 ### 2.2 Challenger ML Models & Explainability
-The challenger pipeline in [`ml_challenger_lending_club.py`](file:///Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/ml_challenger_lending_club.py) and serialized artifacts in [`ml_challenger_output/`](file:///Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/ml_challenger_output/) provide:
+The challenger pipeline in `ml_challenger_lending_club.py` and serialized artifacts in `data/ml_output/` (or `ml_challenger_output/`) provide:
 - **XGBoost Classifier** (`xgboost.joblib`): Optimized gradient boosting model capturing non-linear interactions.
 - **Random Forest Classifier** (`random_forest.joblib`): Non-linear ensemble benchmark.
 - **Challenger Logistic Regression** (`logistic_regression.joblib`): Standard scaled continuous feature baseline with `scaler.joblib`.
@@ -37,22 +37,21 @@ The challenger pipeline in [`ml_challenger_lending_club.py`](file:///Users/pulki
 
 ## 3. Existing Model Entry Points & Artifacts
 
-The agent layer interfaces with the following existing parent artifacts:
+The agent layer interfaces with the following model artifacts (bundled in `data/` for standalone operation, with fallback to parent workspace):
 
 ```text
-/Users/pulkitchauhan/Desktop/cv/Credit-Risk-Modeling-main/
+openclaw_credit_risk_agent/
 │
-├── df_scorecard.csv                    <-- WoE Scorecard coefficients & score point table (103 bins)
-├── ml_challenger_output/
-│   ├── xgboost.joblib                  <-- Serialized XGBoost model (32 origination features)
-│   ├── random_forest.joblib            <-- Serialized Random Forest model
-│   ├── logistic_regression.joblib      <-- Serialized standard Logistic Regression model
-│   ├── scaler.joblib                   <-- Fitted StandardScaler for continuous features
-│   ├── model_comparison.csv            <-- Pre-computed benchmark metrics
-│   ├── threshold_analysis.csv          <-- Precision/Recall/F1 at operating thresholds
-│   └── psi_per_feature.csv             <-- Baseline PSI distribution data
-│
-└── ml_challenger_lending_club.py       <-- Origination feature schema & PSI calculations
+├── data/
+│   ├── df_scorecard.csv                <-- WoE Scorecard coefficients & score point table (103 bins)
+│   └── ml_output/
+│       ├── xgboost.joblib              <-- Serialized XGBoost model (32 origination features)
+│       ├── random_forest.joblib        <-- Serialized Random Forest model
+│       ├── logistic_regression.joblib  <-- Serialized standard Logistic Regression model
+│       ├── scaler.joblib               <-- Fitted StandardScaler for continuous features
+│       ├── model_comparison.csv        <-- Pre-computed benchmark metrics
+│       ├── threshold_analysis.csv      <-- Precision/Recall/F1 at operating thresholds
+│       └── psi_per_feature.csv         <-- Baseline PSI distribution data
 ```
 
 ### Untouched Files

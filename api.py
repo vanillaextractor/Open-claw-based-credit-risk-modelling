@@ -5,7 +5,27 @@ SHAP explainability, and macroeconomic stress testing.
 Reuses the exact same Python tool adapter layer.
 """
 
+import sys
+import types
+from pathlib import Path
 from typing import Dict, Any, Optional, List
+
+# Ensure openclaw_credit_risk_agent package namespace resolves whether run
+# standalone (e.g. uvicorn api:app) or as part of a parent workspace.
+_ROOT_DIR = Path(__file__).resolve().parent
+_PARENT_DIR = _ROOT_DIR.parent
+
+if str(_ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(_ROOT_DIR))
+if str(_PARENT_DIR) not in sys.path:
+    sys.path.insert(0, str(_PARENT_DIR))
+
+if "openclaw_credit_risk_agent" not in sys.modules:
+    _pkg = types.ModuleType("openclaw_credit_risk_agent")
+    _pkg.__path__ = [str(_ROOT_DIR)]
+    _pkg.__file__ = str(_ROOT_DIR / "__init__.py")
+    sys.modules["openclaw_credit_risk_agent"] = _pkg
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel

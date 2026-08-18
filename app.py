@@ -12,13 +12,21 @@ import argparse
 from pathlib import Path
 from typing import Dict, Any
 
-# Ensure project root is in sys.path
+import types
+
+# Ensure project root is in sys.path and package namespace resolves
 AGENT_ROOT = Path(__file__).resolve().parent
 PARENT_ROOT = AGENT_ROOT.parent
-if str(PARENT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PARENT_ROOT))
 if str(AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(AGENT_ROOT))
+if str(PARENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PARENT_ROOT))
+
+if "openclaw_credit_risk_agent" not in sys.modules:
+    _pkg = types.ModuleType("openclaw_credit_risk_agent")
+    _pkg.__path__ = [str(AGENT_ROOT)]
+    _pkg.__file__ = str(AGENT_ROOT / "__init__.py")
+    sys.modules["openclaw_credit_risk_agent"] = _pkg
 
 from openclaw_credit_risk_agent.agents.orchestrator_agent import get_orchestrator
 from openclaw_credit_risk_agent.tools.schemas import ApplicantData, FullCreditAssessment
